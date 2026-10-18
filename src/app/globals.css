@@ -1,26 +1,220 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-bone: #f1ece3;
+  --color-paper: #f7f4ee;
+  --color-sand: #e6dfd3;
+  --color-ink: #151210;
+  --color-ink-2: #2b2622;
+  --color-stone: #8a8278;
+  --color-red: #d31f31;
+  --color-brick: #a65236;
+  --color-forest: #121c16;
+  --color-moss: #223028;
+  --color-mist: #dde3da;
+  --color-sage: #9cab98;
+
+  --font-display: var(--font-cormorant), "Times New Roman", serif;
+  --font-sans: var(--font-hanken), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-quint: cubic-bezier(0.83, 0, 0.17, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ---------- base ---------- */
+
+html {
+  background: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html.is-loading,
+html.is-loading body {
+  overflow: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bone);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--color-red);
+  color: #fff;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+/* ---------- type utilities ---------- */
+
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+@utility nums {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+/* a clipping window for rising text; padding keeps descenders visible */
+@utility mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+/* ---------- split hero ---------- */
+
+.split-row {
+  --split: 50;
+}
+
+.split-a {
+  height: calc(var(--split) * 1%);
+}
+.split-b {
+  height: calc((100 - var(--split)) * 1%);
+}
+.split-seam {
+  left: 0;
+  top: calc(var(--split) * 1%);
+  width: 100%;
+  height: 1px;
+}
+
+@media (min-width: 768px) {
+  .split-a {
+    height: 100%;
+    width: calc(var(--split) * 1%);
+  }
+  .split-b {
+    height: 100%;
+    width: calc((100 - var(--split)) * 1%);
+  }
+  .split-seam {
+    top: 0;
+    left: calc(var(--split) * 1%);
+    width: 1px;
+    height: 100%;
+  }
+}
+
+/* ---------- textures ---------- */
+
+.grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: grain 0.9s steps(4) infinite;
+}
+
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(-2%, -1%); }
+  100% { transform: translate(0, 0); }
+}
+
+.blueprint {
+  background-image:
+    linear-gradient(to right, rgb(21 18 16 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(21 18 16 / 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: center center;
+}
+
+/* drifting mist for the hospitality vertical */
+.mist-layer {
+  position: absolute;
+  inset: -20% -40%;
+  pointer-events: none;
+  filter: blur(36px);
+  will-change: transform;
+}
+.mist-a {
+  background:
+    radial-gradient(40% 18% at 30% 70%, rgb(221 227 218 / 0.38), transparent 70%),
+    radial-gradient(35% 14% at 75% 60%, rgb(221 227 218 / 0.26), transparent 70%);
+  animation: drift 38s ease-in-out infinite alternate;
+}
+.mist-b {
+  background:
+    radial-gradient(45% 16% at 60% 82%, rgb(241 236 227 / 0.32), transparent 70%),
+    radial-gradient(30% 12% at 15% 45%, rgb(241 236 227 / 0.18), transparent 70%);
+  animation: drift 52s ease-in-out -12s infinite alternate-reverse;
+}
+.mist-c {
+  background: radial-gradient(60% 22% at 50% 100%, rgb(221 227 218 / 0.35), transparent 70%);
+  animation: drift 64s ease-in-out -30s infinite alternate;
+}
+
+@keyframes drift {
+  0% { transform: translate3d(-8%, 0, 0) scale(1); }
+  100% { transform: translate3d(8%, -3%, 0) scale(1.08); }
+}
+
+/* ---------- small interactions ---------- */
+
+.link-underline {
+  background: linear-gradient(currentColor, currentColor) no-repeat 100% 100% / 0 1px;
+  transition: background-size 0.6s var(--ease-expo);
+}
+.link-underline:hover {
+  background-position: 0 100%;
+  background-size: 100% 1px;
+}
+
+.seam-pulse {
+  animation: seam 2.8s var(--ease-quint) infinite;
+}
+@keyframes seam {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+.spin-slow {
+  animation: spin 22s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain,
+  .mist-layer,
+  .seam-pulse,
+  .spin-slow {
+    animation: none !important;
+  }
 }
