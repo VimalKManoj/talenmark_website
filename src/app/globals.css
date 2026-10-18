@@ -13,6 +13,8 @@
   --color-moss: #223028;
   --color-mist: #dde3da;
   --color-sage: #9cab98;
+  --color-care: #0f2124;
+  --color-tide: #cfe1dc;
 
   --font-display: var(--font-cormorant), "Times New Roman", serif;
   --font-sans: var(--font-hanken), system-ui, sans-serif;
@@ -95,40 +97,40 @@ html.lenis body {
   margin-bottom: -0.12em;
 }
 
-/* ---------- split hero ---------- */
+/* ---------- split hero (three panes) ---------- */
 
 .split-row {
-  --split: 50;
+  --w0: 33.3333;
+  --w1: 33.3333;
+  --w2: 33.3334;
 }
 
-.split-a {
-  height: calc(var(--split) * 1%);
-}
-.split-b {
-  height: calc((100 - var(--split)) * 1%);
-}
-.split-seam {
+.pane-0 { height: calc(var(--w0) * 1%); }
+.pane-1 { height: calc(var(--w1) * 1%); }
+.pane-2 { height: calc(var(--w2) * 1%); }
+
+.seam-1,
+.seam-2 {
   left: 0;
-  top: calc(var(--split) * 1%);
   width: 100%;
   height: 1px;
 }
+.seam-1 { top: calc(var(--w0) * 1%); }
+.seam-2 { top: calc((var(--w0) + var(--w1)) * 1%); }
 
 @media (min-width: 768px) {
-  .split-a {
-    height: 100%;
-    width: calc(var(--split) * 1%);
-  }
-  .split-b {
-    height: 100%;
-    width: calc((100 - var(--split)) * 1%);
-  }
-  .split-seam {
+  .pane-0 { height: 100%; width: calc(var(--w0) * 1%); }
+  .pane-1 { height: 100%; width: calc(var(--w1) * 1%); }
+  .pane-2 { height: 100%; width: calc(var(--w2) * 1%); }
+
+  .seam-1,
+  .seam-2 {
     top: 0;
-    left: calc(var(--split) * 1%);
     width: 1px;
     height: 100%;
   }
+  .seam-1 { left: calc(var(--w0) * 1%); }
+  .seam-2 { left: calc((var(--w0) + var(--w1)) * 1%); }
 }
 
 /* ---------- textures ---------- */

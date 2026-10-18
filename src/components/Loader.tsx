@@ -63,6 +63,7 @@ export default function Loader() {
         .add(finish, "-=0.1")
         .to(".loader-panel-a", { yPercent: -101, duration: 1.4, ease: "expo.inOut" }, "<")
         .to(".loader-panel-b", { yPercent: 101, duration: 1.4, ease: "expo.inOut" }, "<0.06")
+        .to(".loader-panel-c", { yPercent: -101, duration: 1.4, ease: "expo.inOut" }, "<0.06")
         .to(".loader-seam", { autoAlpha: 0, duration: 0.4 }, "<0.5")
         .add(() => setGone(true));
     },
@@ -73,20 +74,18 @@ export default function Loader() {
 
   return (
     <div ref={root} className="fixed inset-0 z-[90] text-bone" aria-hidden="true">
-      <div className="loader-panel-a absolute inset-x-0 top-0 h-1/2 bg-ink md:inset-x-auto md:inset-y-0 md:left-0 md:h-full md:w-1/2" />
-      <div className="loader-panel-b absolute inset-x-0 bottom-0 h-1/2 bg-ink md:inset-x-auto md:inset-y-0 md:right-0 md:h-full md:w-1/2" />
-      {/* the seam grows outward from a gap around the mark */}
-      <div className="loader-seam absolute left-1/2 top-0 hidden h-[calc(50%-150px)] w-px origin-bottom bg-bone/25 md:block" />
-      <div className="loader-seam absolute bottom-0 left-1/2 hidden h-[calc(50%-150px)] w-px origin-top bg-bone/25 md:block" />
+      {/* three panels, cut along the same seams as the home hero */}
+      <div className="loader-panel-a absolute inset-x-0 top-0 h-[calc(100%/3+1px)] bg-ink md:inset-x-auto md:inset-y-0 md:left-0 md:h-full md:w-[calc(100%/3+1px)]" />
+      <div className="loader-panel-b absolute inset-x-0 top-1/3 h-[calc(100%/3+1px)] bg-ink md:inset-y-0 md:left-1/3 md:right-auto md:top-0 md:h-full md:w-[calc(100%/3+1px)]" />
+      <div className="loader-panel-c absolute inset-x-0 bottom-0 h-1/3 bg-ink md:inset-x-auto md:inset-y-0 md:right-0 md:h-full md:w-1/3" />
+      <div className="loader-seam absolute inset-y-0 left-1/3 hidden w-px origin-center bg-bone/25 md:block" />
+      <div className="loader-seam absolute inset-y-0 left-2/3 hidden w-px origin-center bg-bone/25 md:block" />
 
       <div className="absolute inset-0 flex flex-col justify-between p-5 md:p-8">
-        <div className="flex justify-between gap-4">
-          <span className="loader-content loader-meta eyebrow max-w-[14ch] text-bone/60 md:max-w-none">
-            Real Estate · Construction · Township
-          </span>
-          <span className="loader-content loader-meta eyebrow max-w-[14ch] text-right text-bone/60 md:max-w-none">
-            Hospitality · Resorts · Retreats
-          </span>
+        <div className="grid grid-cols-3 gap-4">
+          <span className="loader-content loader-meta eyebrow text-bone/60">Real Estate · Construction · Township</span>
+          <span className="loader-content loader-meta eyebrow text-center text-bone/60">Hospitality · Resorts · Retreats</span>
+          <span className="loader-content loader-meta eyebrow text-right text-bone/60">Healthcare · Diagnostics · Care</span>
         </div>
 
         <div className="flex flex-col items-center gap-6">

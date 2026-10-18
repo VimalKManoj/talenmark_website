@@ -44,9 +44,27 @@ const cards = [
     muted: "text-mist/55",
     rule: "border-mist/15",
   },
+  {
+    index: "03",
+    word: "Soundness",
+    title: "Healthcare",
+    href: undefined,
+    body: "A healthy community is the foundation of a thriving society. We are building towards world-class medical infrastructure, with international standards of care within everyone's reach.",
+    list: [
+      ["Medical Facilities", "State-of-the-art infrastructure"],
+      ["Diagnostic Centres", "Advanced diagnostics"],
+      ["Holistic Care", "Specialised care institutions"],
+    ],
+    image: images.healthcare,
+    imageStyle: { objectPosition: "62% 50%" },
+    caption: "Talenmark Healthcare — in the making",
+    theme: "bg-care text-tide",
+    muted: "text-tide/55",
+    rule: "border-tide/15",
+  },
 ];
 
-/** Two full-height cards that stack over each other as you scroll. */
+/** Full-height cards that stack over each other as you scroll. */
 export default function VerticalStack() {
   const root = useRef<HTMLElement>(null);
 
@@ -84,14 +102,14 @@ export default function VerticalStack() {
             (Our Verticals)
           </span>
           <h2 className="display text-5xl md:col-span-6 md:text-[5.2vw]" data-reveal="words">
-            <Words text="Two worlds," /> <br />
+            <Words text="Three worlds," /> <br />
             <em className="italic">
               <Words text="one ground." />
             </em>
           </h2>
           <p className="max-w-[34ch] self-end text-[0.95rem] leading-relaxed text-ink-2 md:col-span-3" data-reveal="up">
-            From the city&apos;s landmarks to the mist of the Western Ghats, each vertical carries the same promise:
-            build with integrity, and leave something lasting.
+            From the city&apos;s landmarks to the mist of the Western Ghats — and next, to care — each vertical
+            carries the same promise: build with integrity, and leave something lasting.
           </p>
         </div>
       </div>
@@ -116,19 +134,28 @@ export default function VerticalStack() {
                       </li>
                     ))}
                   </ul>
-                  <TransitionLink
-                    href={c.href}
-                    className="group mt-10 inline-flex items-center gap-4 text-[0.95rem]"
-                    data-cursor="Discover"
-                  >
-                    <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-current">
-                      <span className="absolute inset-0 origin-bottom scale-y-0 rounded-full bg-red transition-transform duration-700 ease-[var(--ease-expo)] group-hover:scale-y-100" />
-                      <svg viewBox="0 0 16 16" className="relative h-4 w-4 transition-colors group-hover:text-white" fill="none" stroke="currentColor" strokeWidth="1.3">
-                        <path d="M2 8h12M9 3l5 5-5 5" />
-                      </svg>
+                  {c.href ? (
+                    <TransitionLink
+                      href={c.href}
+                      className="group mt-10 inline-flex items-center gap-4 text-[0.95rem]"
+                      data-cursor="Discover"
+                    >
+                      <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-current">
+                        <span className="absolute inset-0 origin-bottom scale-y-0 rounded-full bg-red transition-transform duration-700 ease-[var(--ease-expo)] group-hover:scale-y-100" />
+                        <svg viewBox="0 0 16 16" className="relative h-4 w-4 transition-colors group-hover:text-white" fill="none" stroke="currentColor" strokeWidth="1.3">
+                          <path d="M2 8h12M9 3l5 5-5 5" />
+                        </svg>
+                      </span>
+                      <span className="link-underline">Discover {c.word}</span>
+                    </TransitionLink>
+                  ) : (
+                    <span className="mt-10 inline-flex items-center gap-4 text-[0.95rem]">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-current/40">
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-current" />
+                      </span>
+                      <span className={c.muted}>In the making</span>
                     </span>
-                    <span className="link-underline">Discover {c.word}</span>
-                  </TransitionLink>
+                  )}
                 </div>
               </div>
 

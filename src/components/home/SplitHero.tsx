@@ -1,17 +1,44 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { entryDelay, onIntroReady } from "@/lib/stage";
-import { verticals } from "@/lib/content";
+import { healthcare, verticals } from "@/lib/content";
 import { Chars } from "@/components/motion/Split";
-import { LogoMark } from "@/components/Logo";
 import { usePageTransition } from "@/components/providers/TransitionProvider";
 
 /** Overlay shared with VerticalHero so the hand-off between pages is seamless. */
 export const heroShade = "bg-gradient-to-b from-ink/45 via-ink/5 to-ink/70";
+
+type Pane = {
+  key: string;
+  index: string;
+  word: string;
+  name: string;
+  tagline: string;
+  blurb: string;
+  align: "left" | "center" | "right";
+  href?: string;
+  image?: StaticImageData;
+  imageAlt?: string;
+  status?: string;
+};
+
+const [structure, sanctuary] = verticals;
+const panes: Pane[] = [
+  { ...structure, key: structure.slug, align: "left" },
+  { ...sanctuary, key: sanctuary.slug, align: "center" },
+  { ...healthcare, key: healthcare.slug, align: "right" },
+];
+
+const EVEN = 100 / 3;
+const alignClass = {
+  left: { box: "items-start text-left", row: "", origin: "origin-bottom-left" },
+  center: { box: "items-center text-center", row: "justify-center", origin: "origin-bottom" },
+  right: { box: "items-end text-right", row: "flex-row-reverse", origin: "origin-bottom-right" },
+};
 
 export default function SplitHero() {
   const root = useRef<HTMLElement>(null);
@@ -22,8 +49,18 @@ export default function SplitHero() {
   useGSAP(
     () => {
       const rowEl = row.current!;
-      const proxy = { split: 50 };
-      const apply = () => root.current!.style.setProperty("--split", proxy.split.toFixed(3));
+      const proxy = { w0: EVEN, w1: EVEN, w2: EVEN };
+      const apply = () => {
+        const s = root.current!.style;
+        s.setProperty("--w0", proxy.w0.toFixed(3));
+        s.setProperty("--w1", proxy.w1.toFixed(3));
+        s.setProperty("--w2", proxy.w2.toFixed(3));
+      };
+      const widths = (focus: number | null, on: number, off: number) =>
+        focus === null
+          ? { w0: EVEN, w1: EVEN, w2: EVEN }
+          : { w0: focus === 0 ? on : off, w1: focus === 1 ? on : off, w2: focus === 2 ? on : off };
+
       const halves = gsap.utils.toArray<HTMLElement>(".half", root.current);
       const pick = (sel: string) => halves.map((h) => h.querySelectorAll<HTMLElement>(sel));
       const imgs = pick(".half-img");
@@ -41,25 +78,21 @@ export default function SplitHero() {
       gsap.set(".char", { yPercent: 115 });
       gsap.set(".hero-fade", { autoAlpha: 0, y: 14 });
       gsap.set(".hero-seam", { scale: 0 });
-      gsap.set(".hero-badge", { scale: 0, rotate: -120 });
       if (canHover) gsap.set(details, { autoAlpha: 0, y: 14 });
 
       // ---- entrance
       const intro = gsap.timeline({ paused: true, onComplete: () => void (locked = false) });
       intro
-        .to(imgs, { scale: 1, duration: 2.4, ease: "expo.out" }, 0)
-        .to(".hero-seam", { scale: 1, duration: 1.8, ease: "expo.inOut" }, 0.1)
-        .to(titles[0], { yPercent: 0, stagger: 0.045, duration: 1.5 }, 0.35)
-        .to(titles[1], { yPercent: 0, stagger: 0.045, duration: 1.5 }, 0.45)
-        .to(".hero-fade", { autoAlpha: 1, y: 0, stagger: 0.05, duration: 1.2 }, 0.7)
-        .to(".hero-badge", { scale: 1, rotate: 0, duration: 1.6 }, 0.8);
+        .to(imgs, { scale: 1, duration: 2.4, ease: "expo.out", stagger: 0.08 }, 0)
+        .to(".hero-seam", { scale: 1, duration: 1.8, ease: "expo.inOut", stagger: 0.1 }, 0.1);
+      titles.forEach((t, i) => intro.to(t, { yPercent: 0, stagger: 0.045, duration: 1.5 }, 0.35 + i * 0.1));
+      intro.to(".hero-fade", { autoAlpha: 1, y: 0, stagger: 0.04, duration: 1.2 }, 0.75);
       const off = onIntroReady(() => intro.delay(entryDelay()).restart(true));
 
       // ---- hover: the hovered world takes more of the screen
       const focus = (i: number | null) => {
         if (locked || !canHover) return;
-        const target = i === null ? 50 : i === 0 ? 58 : 42;
-        gsap.to(proxy, { split: target, duration: 1.3, ease: "expo.out", onUpdate: apply, overwrite: true });
+        gsap.to(proxy, { ...widths(i, 46, 27), duration: 1.3, ease: "expo.out", onUpdate: apply, overwrite: true });
         halves.forEach((_, j) => {
           const on = i === j;
           const away = i !== null && !on;
@@ -74,7 +107,7 @@ export default function SplitHero() {
             overwrite: "auto",
           });
           gsap.to(titleBoxes[j], {
-            scale: away ? 0.86 : 1,
+            scale: away ? 0.84 : 1,
             opacity: away ? 0.55 : 1,
             duration: 1.2,
             ease: "expo.out",
@@ -117,21 +150,21 @@ export default function SplitHero() {
 
       // ---- click: the chosen world fills the screen, then becomes its own page
       goRef.current = (i: number) => {
-        const href = verticals[i].href;
-        if (locked) return;
+        const href = panes[i].href;
+        if (locked || !href) return;
         if (window.scrollY > 24) {
           navigate(href);
           return;
         }
         locked = true;
-        const other = 1 - i;
+        const others = halves.flatMap((_, j) => (j === i ? [] : Array.from(content[j])));
         gsap
           .timeline({ onComplete: () => navigate(href, { mode: "expand" }) })
-          .to(proxy, { split: i === 0 ? 100 : 0, duration: 1.25, ease: "expo.inOut", onUpdate: apply, overwrite: true }, 0)
+          .to(proxy, { ...widths(i, 100, 0), duration: 1.25, ease: "expo.inOut", onUpdate: apply, overwrite: true }, 0)
           .to(titles[i], { yPercent: -115, stagger: 0.03, duration: 0.75, ease: "expo.in", overwrite: true }, 0)
-          .to([...details[i], ...content[other]], { autoAlpha: 0, duration: 0.45, overwrite: true }, 0)
+          .to([...details[i], ...others], { autoAlpha: 0, duration: 0.45, overwrite: true }, 0)
           .to(halves[i].querySelectorAll(".hero-fade"), { autoAlpha: 0, duration: 0.45 }, 0)
-          .to([".hero-badge", ".hero-seam"], { autoAlpha: 0, duration: 0.4 }, 0)
+          .to(".hero-seam", { autoAlpha: 0, duration: 0.4 }, 0)
           .to(dims[i], { opacity: 0, duration: 0.5, overwrite: true }, 0)
           .to(shifts, { x: 0, y: 0, duration: 1.1, ease: "expo.inOut", overwrite: true }, 0)
           .to(imgs[i], { scale: 1, duration: 1.25, ease: "expo.inOut", overwrite: true }, 0);
@@ -150,99 +183,113 @@ export default function SplitHero() {
 
   return (
     <section ref={root} className="split-row relative h-[100svh] w-full overflow-hidden bg-ink text-bone">
-      <h1 className="sr-only">Talenmark Group — Real Estate, Construction &amp; Township Development, and Hospitality</h1>
+      <h1 className="sr-only">
+        Talenmark Group — Real Estate, Construction &amp; Township Development; Hospitality; and Healthcare
+      </h1>
       <div ref={row} className="flex h-full w-full flex-col md:flex-row">
-        {verticals.map((v, i) => (
-          <Link
-            key={v.slug}
-            href={v.href}
-            onNavigate={(e) => {
-              e.preventDefault();
-              goRef.current(i);
-            }}
-            data-cursor="Enter"
-            className={`half ${i === 0 ? "split-a" : "split-b"} relative block shrink-0 overflow-hidden`}
-            aria-label={`${v.word} — ${v.name}`}
-          >
-            <div className="half-media pointer-events-none absolute left-1/2 top-1/2 h-[100svh] w-screen -translate-x-1/2 -translate-y-1/2">
-              <div className="half-scroll absolute inset-0">
-                <div className="half-shift absolute -inset-8">
-                  <div className="half-img absolute inset-0">
-                    <Image
-                      src={v.image}
-                      alt={v.imageAlt}
-                      fill
-                      sizes="100vw"
-                      quality={85}
-                      preload
-                      placeholder="blur"
-                      data-preload
-                      className="object-cover"
-                    />
+        {panes.map((p, i) => {
+          const a = alignClass[p.align];
+          const inner = (
+            <>
+              <div className="half-media pointer-events-none absolute left-1/2 top-1/2 h-[100svh] w-screen -translate-x-1/2 -translate-y-1/2">
+                <div className="half-scroll absolute inset-0">
+                  <div className="half-shift absolute -inset-8">
+                    <div className="half-img absolute inset-0">
+                      {p.image && (
+                        <Image
+                          src={p.image}
+                          alt={p.imageAlt ?? ""}
+                          fill
+                          sizes="100vw"
+                          quality={85}
+                          preload
+                          placeholder="blur"
+                          data-preload
+                          className="object-cover"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className={`absolute inset-0 ${heroShade}`} />
+                <div className="half-dim absolute inset-0 bg-ink opacity-0" />
+              </div>
+
+              <div
+                className={`half-content relative z-10 flex h-full flex-col justify-between px-5 pb-5 md:px-8 md:pb-10 md:pt-28 ${
+                  i === 0 ? "pt-20" : "pt-5"
+                } ${a.box}`}
+              >
+                <div className={`hero-fade flex items-baseline gap-3 ${a.row}`}>
+                  <span className="eyebrow text-bone/55">({p.index})</span>
+                  <span className="eyebrow max-w-[26ch] text-bone/85">{p.name}</span>
+                </div>
+
+                <div className={`flex flex-col ${a.box}`}>
+                  <p className="half-detail mb-6 hidden max-w-[34ch] text-[0.92rem] leading-relaxed text-bone/85 [text-shadow:0_1px_14px_rgb(0_0_0/0.55)] md:block">
+                    {p.blurb}
+                  </p>
+                  <h2 className={`half-title display whitespace-nowrap text-[15vw] leading-[0.82] md:text-[6vw] ${a.origin}`}>
+                    <Chars text={p.word} />
+                  </h2>
+                  <div className={`mt-3 flex items-center gap-4 md:mt-5 ${a.row}`}>
+                    <span className="hero-fade display text-lg italic text-bone/90 md:text-[1.45rem]">{p.tagline}</span>
+                    <span className="half-detail eyebrow flex items-center gap-2 rounded-full border border-bone/35 px-4 py-2 backdrop-blur-sm">
+                      {p.href ? (
+                        <>
+                          Explore
+                          <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.4">
+                            <path d="M2 8h12M9 3l5 5-5 5" />
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-tide" />
+                          {p.status}
+                        </>
+                      )}
+                    </span>
                   </div>
                 </div>
               </div>
-              <div className={`absolute inset-0 ${heroShade}`} />
-              <div className="half-dim absolute inset-0 bg-ink opacity-0" />
-            </div>
+            </>
+          );
 
-            <div
-              className={`half-content relative z-10 flex h-full flex-col justify-between px-5 pb-6 pt-20 md:px-10 md:pb-10 md:pt-28 ${
-                v.align === "right" ? "items-end text-right" : "items-start"
-              }`}
+          const cls = `half pane-${i} relative block shrink-0 overflow-hidden`;
+          return p.href ? (
+            <Link
+              key={p.key}
+              href={p.href}
+              onNavigate={(e) => {
+                e.preventDefault();
+                goRef.current(i);
+              }}
+              data-cursor="Enter"
+              className={cls}
+              aria-label={`${p.word} — ${p.name}`}
             >
-              <div className={`hero-fade flex items-baseline gap-3 ${v.align === "right" ? "flex-row-reverse" : ""}`}>
-                <span className="eyebrow text-bone/55">({v.index})</span>
-                <span className="eyebrow max-w-[30ch] text-bone/85">{v.name}</span>
-              </div>
-
-              <div className={`flex flex-col ${v.align === "right" ? "items-end" : "items-start"}`}>
-                <p className="half-detail mb-6 hidden max-w-[36ch] text-[0.95rem] leading-relaxed text-bone/80 md:block">
-                  {v.blurb}
-                </p>
-                <h2
-                  className={`half-title display whitespace-nowrap text-[17vw] leading-[0.82] md:text-[8.4vw] ${
-                    v.align === "right" ? "origin-bottom-right" : "origin-bottom-left"
-                  }`}
-                >
-                  <Chars text={v.word} />
-                </h2>
-                <div className={`mt-4 flex items-center gap-5 md:mt-6 ${v.align === "right" ? "flex-row-reverse" : ""}`}>
-                  <span className="hero-fade display text-xl italic text-bone/90 md:text-[1.7rem]">{v.tagline}</span>
-                  <span className="half-detail eyebrow flex items-center gap-2 rounded-full border border-bone/35 px-4 py-2 backdrop-blur-sm">
-                    Explore
-                    <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.4">
-                      <path d="M2 8h12M9 3l5 5-5 5" />
-                    </svg>
-                  </span>
-                </div>
-              </div>
+              {inner}
+            </Link>
+          ) : (
+            <div key={p.key} data-cursor="Soon" className={cls} aria-label={`${p.word} — ${p.name}, ${p.status}`}>
+              {inner}
             </div>
-          </Link>
-        ))}
+          );
+        })}
       </div>
 
-      {/* the seam between the two worlds */}
-      <div className="split-seam pointer-events-none absolute z-20" aria-hidden="true">
-        <div className="hero-seam absolute inset-0 bg-bone/45" />
-        <div className="absolute inset-0 hidden overflow-hidden md:block">
-          <div className="seam-pulse h-[10%] w-px bg-gradient-to-b from-transparent via-bone to-transparent" />
+      {/* the seams between the three worlds */}
+      {["seam-1", "seam-2"].map((s, i) => (
+        <div key={s} className={`${s} pointer-events-none absolute z-20`} aria-hidden="true">
+          <div className="hero-seam absolute inset-0 bg-bone/40" />
+          <div className="absolute inset-0 hidden overflow-hidden md:block">
+            <div
+              className="seam-pulse h-[10%] w-px bg-gradient-to-b from-transparent via-bone to-transparent"
+              style={{ animationDelay: `${i * 1.4}s` }}
+            />
+          </div>
         </div>
-        <div className="hero-badge absolute left-1/2 top-1/2 hidden h-32 w-32 -translate-x-1/2 -translate-y-1/2 md:block">
-          <div className="absolute inset-0 rounded-full border border-bone/20 bg-ink/25 backdrop-blur-md" />
-          <svg viewBox="0 0 120 120" className="spin-slow absolute inset-0 h-full w-full text-bone/80">
-            <defs>
-              <path id="ring" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1-92 0" />
-            </defs>
-            <text className="eyebrow" style={{ fontSize: 7.4 }} fill="currentColor">
-              <textPath href="#ring" textLength={287} lengthAdjust="spacing">
-                TALENMARK GROUP · EST. 2014 · CALICUT · INDIA ·
-              </textPath>
-            </text>
-          </svg>
-          <LogoMark className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 md:h-10 md:w-10" />
-        </div>
-      </div>
+      ))}
     </section>
   );
 }

@@ -2,12 +2,14 @@ import culturalCentre from "@/assets/images/cultural-centre.jpg";
 import culturalCentreRed from "@/assets/images/cultural-centre-red.jpg";
 import chilgroveAerial from "@/assets/images/chilgrove-aerial.jpg";
 import chilgroveVilla from "@/assets/images/chilgrove-villa.jpg";
+import healthcareImage from "@/assets/images/healthcare.webp";
 
 export const images = {
   culturalCentre,
   culturalCentreRed,
   chilgroveAerial,
   chilgroveVilla,
+  healthcare: healthcareImage,
 };
 
 /**
@@ -64,6 +66,20 @@ export const verticals: Vertical[] = [
     align: "right",
   },
 ];
+
+/** The third vertical. No page yet, so it lives on the home page only. */
+export const healthcare = {
+  slug: "healthcare",
+  index: "03",
+  word: "Soundness",
+  name: "Healthcare",
+  tagline: "Care within reach.",
+  blurb:
+    "State-of-the-art medical facilities, advanced diagnostics and holistic care — international standards of health, within everyone's reach.",
+  status: "In the making",
+  image: healthcareImage,
+  imageAlt: "A modern hospital entrance at dusk, with doctors, nurses and patients arriving",
+};
 
 export const contact = {
   company: "Talenmark Developers Pvt. Ltd.",
